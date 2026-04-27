@@ -37,6 +37,20 @@ const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
   { key: 'other', label: '그외' },
 ];
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const getDragBounds = (
+  containerWidth: number,
+  containerHeight: number,
+  overlayWidth: number,
+  overlayHeight: number,
+) => ({
+  minX: -overlayWidth * 0.5,
+  maxX: containerWidth - overlayWidth * 0.5,
+  minY: -overlayHeight * 0.5,
+  maxY: containerHeight - overlayHeight * 0.5,
+});
+
 function useLoadedImage(src: string | null, fallbackSrc?: string): LoadedImage | null {
   const [loaded, setLoaded] = useState<LoadedImage | null>(null);
 
@@ -130,6 +144,7 @@ export default function StorefrontEditor() {
 
   const onOverlayPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
     const container = editorRef.current;
     if (!container) return;
 
@@ -142,11 +157,18 @@ export default function StorefrontEditor() {
     setIsDragging(true);
 
     const onMove = (moveEvent: globalThis.PointerEvent) => {
+      moveEvent.preventDefault();
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
+      const { minX, maxX, minY, maxY } = getDragBounds(
+        rect.width,
+        rect.height,
+        scaledOverlaySize.width,
+        scaledOverlaySize.height,
+      );
 
-      const nextX = Math.max(0, Math.min(baseX + deltaX, rect.width - scaledOverlaySize.width));
-      const nextY = Math.max(0, Math.min(baseY + deltaY, rect.height - scaledOverlaySize.height));
+      const nextX = clamp(baseX + deltaX, minX, maxX);
+      const nextY = clamp(baseY + deltaY, minY, maxY);
 
       setTvPosition({ x: nextX, y: nextY });
     };
@@ -160,6 +182,22 @@ export default function StorefrontEditor() {
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
   };
+
+  useEffect(() => {
+    if (!backgroundImage || !overlayImage) return;
+
+    const { minX, maxX, minY, maxY } = getDragBounds(
+      editorWidth,
+      editorHeight,
+      scaledOverlaySize.width,
+      scaledOverlaySize.height,
+    );
+
+    setTvPosition((prev) => ({
+      x: clamp(prev.x, minX, maxX),
+      y: clamp(prev.y, minY, maxY),
+    }));
+  }, [backgroundImage, overlayImage, editorWidth, editorHeight, scaledOverlaySize.width, scaledOverlaySize.height]);
 
   const downloadImage = async () => {
     if (!backgroundImage || !overlayImage) return;
@@ -319,6 +357,7 @@ export default function StorefrontEditor() {
                 top: `${tvPosition.y}px`,
                 width: `${scaledOverlaySize.width}px`,
                 height: `${scaledOverlaySize.height}px`,
+                touchAction: 'none',
               }}
             >
               <img
@@ -336,6 +375,9 @@ export default function StorefrontEditor() {
             </p>
           ) : null}
         </div>
+        <p className="mt-2 text-xs text-slate-500">
+          목업은 손가락으로 끌어서 원하는 위치에 배치할 수 있어요.
+        </p>
 
         <button
           type="button"
