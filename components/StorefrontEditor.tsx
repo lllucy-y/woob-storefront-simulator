@@ -196,7 +196,7 @@ export default function StorefrontEditor() {
   };
 
   const requestFormUrl =
-    'https://www.notion.so/thealt/29a1bf73c34d80cb9c9cea835ff14ecc?source=copy_link';
+    'https://thealt.notion.site/29a1bf73c34d815cb242de566247d572?pvs=105';
 
   const onOpenRequestForm = () => {
     window.open(requestFormUrl, '_blank', 'noopener,noreferrer');
