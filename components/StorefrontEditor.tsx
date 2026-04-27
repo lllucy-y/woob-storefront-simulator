@@ -1,11 +1,9 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Image as KonvaImage, Layer, Stage } from 'react-konva';
-import type Konva from 'konva';
+import { ChangeEvent, FormEvent, PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 type LoadedImage = {
-  element: HTMLImageElement;
+  src: string;
   width: number;
   height: number;
 };
@@ -21,23 +19,23 @@ function useLoadedImage(src: string | null): LoadedImage | null {
       setLoaded(null);
       return;
     }
+
     const img = new window.Image();
-    img.crossOrigin = 'anonymous';
     img.src = src;
-    img.onload = () => setLoaded({ element: img, width: img.width, height: img.height });
+    img.onload = () => setLoaded({ src, width: img.width, height: img.height });
   }, [src]);
 
   return loaded;
 }
 
 export default function StorefrontEditor() {
-  const stageRef = useRef<Konva.Stage>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  const [stageWidth, setStageWidth] = useState(320);
+  const [editorWidth, setEditorWidth] = useState(320);
   const [uploadSrc, setUploadSrc] = useState<string | null>(null);
   const [tvScale, setTvScale] = useState(0.7);
   const [tvPosition, setTvPosition] = useState({ x: 120, y: 220 });
+  const [isDragging, setIsDragging] = useState(false);
 
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
@@ -50,31 +48,79 @@ export default function StorefrontEditor() {
   useEffect(() => {
     const resize = () => {
       if (!editorRef.current) return;
-      setStageWidth(Math.max(280, Math.floor(editorRef.current.clientWidth)));
+      setEditorWidth(Math.max(280, Math.floor(editorRef.current.clientWidth)));
     };
     resize();
     window.addEventListener('resize', resize);
     return () => window.removeEventListener('resize', resize);
   }, []);
 
-  const stageHeight = useMemo(() => {
-    if (!backgroundImage) return Math.floor(stageWidth * 0.7);
-    return Math.max(240, Math.floor((backgroundImage.height / backgroundImage.width) * stageWidth));
-  }, [backgroundImage, stageWidth]);
+  const editorHeight = useMemo(() => {
+    if (!backgroundImage) return Math.floor(editorWidth * 0.7);
+    return Math.max(240, Math.floor((backgroundImage.height / backgroundImage.width) * editorWidth));
+  }, [backgroundImage, editorWidth]);
+
+  const scaledOverlaySize = useMemo(() => {
+    if (!overlayImage) return { width: 0, height: 0 };
+    return {
+      width: overlayImage.width * tvScale,
+      height: overlayImage.height * tvScale,
+    };
+  }, [overlayImage, tvScale]);
 
   const onUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const localUrl = URL.createObjectURL(file);
     setUploadSrc(localUrl);
-    setTvPosition({ x: stageWidth * 0.35, y: stageHeight * 0.55 });
+    setTvPosition({ x: editorWidth * 0.35, y: editorHeight * 0.55 });
   };
 
-  const downloadImage = () => {
-    if (!stageRef.current || !backgroundImage) return;
-    const dataUrl = stageRef.current.toDataURL({ pixelRatio: 2 });
+  const onOverlayPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const container = editorRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const baseX = tvPosition.x;
+    const baseY = tvPosition.y;
+
+    setIsDragging(true);
+
+    const onMove = (moveEvent: globalThis.PointerEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      const nextX = Math.max(0, Math.min(baseX + deltaX, rect.width - scaledOverlaySize.width));
+      const nextY = Math.max(0, Math.min(baseY + deltaY, rect.height - scaledOverlaySize.height));
+
+      setTvPosition({ x: nextX, y: nextY });
+    };
+
+    const onUp = () => {
+      setIsDragging(false);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
+  const downloadImage = async () => {
+    if (!backgroundImage || !editorRef.current) return;
+
+    const html2canvas = (await import('html2canvas')).default;
+    const canvas = await html2canvas(editorRef.current, {
+      useCORS: true,
+      backgroundColor: null,
+      scale: 2,
+    });
+
     const anchor = document.createElement('a');
-    anchor.href = dataUrl;
+    anchor.href = canvas.toDataURL('image/png');
     anchor.download = `woob-simulation-${Date.now()}.png`;
     anchor.click();
   };
@@ -136,25 +182,42 @@ export default function StorefrontEditor() {
           />
         </div>
 
-        <div ref={editorRef} className="mt-6 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-          <Stage ref={stageRef} width={stageWidth} height={stageHeight} className="touch-pan-y">
-            <Layer>
-              {backgroundImage ? (
-                <KonvaImage image={backgroundImage.element} width={stageWidth} height={stageHeight} listening={false} />
-              ) : null}
-              {overlayImage ? (
-                <KonvaImage
-                  image={overlayImage.element}
-                  x={tvPosition.x}
-                  y={tvPosition.y}
-                  width={overlayImage.width * tvScale}
-                  height={overlayImage.height * tvScale}
-                  draggable
-                  onDragEnd={(e) => setTvPosition({ x: e.target.x(), y: e.target.y() })}
-                />
-              ) : null}
-            </Layer>
-          </Stage>
+        <div
+          ref={editorRef}
+          className="relative mt-6 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
+          style={{ height: `${editorHeight}px` }}
+        >
+          {backgroundImage ? (
+            <img
+              src={backgroundImage.src}
+              alt="업로드한 매장 사진"
+              className="absolute inset-0 h-full w-full object-cover"
+              draggable={false}
+            />
+          ) : null}
+
+          {overlayImage && backgroundImage ? (
+            <div
+              role="button"
+              aria-label="TV 오버레이 드래그"
+              onPointerDown={onOverlayPointerDown}
+              className={`absolute touch-none select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+              style={{
+                left: `${tvPosition.x}px`,
+                top: `${tvPosition.y}px`,
+                width: `${scaledOverlaySize.width}px`,
+                height: `${scaledOverlaySize.height}px`,
+              }}
+            >
+              <img
+                src={overlayImage.src}
+                alt="TV 오버레이"
+                className="h-full w-full pointer-events-none"
+                draggable={false}
+              />
+            </div>
+          ) : null}
+
           {!backgroundImage ? (
             <p className="p-4 text-center text-sm text-slate-600">
               사진을 업로드하면 이 영역에서 TV 배너를 드래그/확대하여 시안을 확인할 수 있습니다.
