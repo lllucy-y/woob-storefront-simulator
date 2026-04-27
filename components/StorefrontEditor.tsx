@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, FormEvent, PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 type LoadedImage = {
   src: string;
@@ -88,10 +88,7 @@ export default function StorefrontEditor() {
   const [mockupIndustry, setMockupIndustry] = useState<MockupIndustry>('bakery');
   const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
-  const [name, setName] = useState('');
-  const [contact, setContact] = useState('');
-  const [business, setBusiness] = useState('');
-  const [storeName, setStoreName] = useState('');
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   const selectedMockupSrc = useMemo(
     () => `/mockups/${mockupIndustry}-${mockupOrientation}.png`,
@@ -198,18 +195,10 @@ export default function StorefrontEditor() {
     anchor.click();
   };
 
-  const requestFormUrl = useMemo(() => {
-    const params = new URLSearchParams({
-      name,
-      contact,
-      business,
-      storeName,
-    });
-    return `https://forms.gle/REPLACE_ME?${params.toString()}`;
-  }, [name, contact, business, storeName]);
+  const requestFormUrl =
+    'https://www.notion.so/thealt/29a1bf73c34d80cb9c9cea835ff14ecc?source=copy_link';
 
-  const onSubmitLead = (e: FormEvent) => {
-    e.preventDefault();
+  const onOpenRequestForm = () => {
     window.open(requestFormUrl, '_blank', 'noopener,noreferrer');
   };
 
@@ -348,52 +337,61 @@ export default function StorefrontEditor() {
           ) : null}
         </div>
 
-        <a
-          href="#request-form"
+        <button
+          type="button"
+          onClick={() => setIsRequestModalOpen(true)}
           className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue hover:bg-blue-50 sm:w-auto"
         >
-          무료 시안 요청하기
-        </a>
+          무료 상담 신청
+        </button>
       </section>
 
-      <section id="request-form" className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-8">
-        <h2 className="text-xl font-bold">무료 시안 요청 정보</h2>
-        <p className="mt-1 text-sm text-slate-600">아래 정보를 입력하면 Google Form으로 이동합니다.</p>
-
-        <form onSubmit={onSubmitLead} className="mt-5 grid gap-3">
-          <input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="이름"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          />
-          <input
-            required
-            value={contact}
-            onChange={(e) => setContact(e.target.value)}
-            placeholder="연락처"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          />
-          <input
-            required
-            value={business}
-            onChange={(e) => setBusiness(e.target.value)}
-            placeholder="업종"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          />
-          <input
-            required
-            value={storeName}
-            onChange={(e) => setStoreName(e.target.value)}
-            placeholder="매장명"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          />
-          <button type="submit" className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
-            Google Form으로 제출하기
-          </button>
-        </form>
-      </section>
+      {isRequestModalOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="request-modal-title"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <h2 id="request-modal-title" className="text-xl font-bold text-slate-900">
+                무료 상담 신청
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsRequestModalOpen(false)}
+                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="모달 닫기"
+              >
+                닫기
+              </button>
+            </div>
+            <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">
+              지금 만든 시뮬레이션 이미지를 저장한 뒤, 상담 신청 폼에 첨부해 주세요.
+              {'\n'}
+              담당자가 실제 설치 가능 위치와 무료 시안을 함께 확인해 드립니다.
+            </p>
+            <div className="mt-5 grid gap-2">
+              <button
+                type="button"
+                onClick={downloadImage}
+                disabled={!backgroundImage}
+                className="rounded-lg bg-woob-blue px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                시뮬레이션 이미지 저장하기
+              </button>
+              <button
+                type="button"
+                onClick={onOpenRequestForm}
+                className="rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                무료 상담 신청 폼 작성하기
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <footer className="mt-8 space-y-2 rounded-2xl bg-white p-5 text-xs leading-relaxed text-slate-600 ring-1 ring-slate-200 sm:p-6">
         <p>
