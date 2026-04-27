@@ -233,13 +233,6 @@ export default function StorefrontEditor() {
     anchor.click();
   };
 
-  const requestFormUrl =
-    'https://thealt.notion.site/29a1bf73c34d815cb242de566247d572?pvs=105';
-
-  const onOpenRequestForm = () => {
-    window.open(requestFormUrl, '_blank', 'noopener,noreferrer');
-  };
-
   return (
     <main className="mx-auto w-full max-w-5xl p-4 pb-16 sm:p-6">
       <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-8">
@@ -423,13 +416,14 @@ export default function StorefrontEditor() {
               >
                 시뮬레이션 이미지 저장하기
               </button>
-              <button
-                type="button"
-                onClick={onOpenRequestForm}
-                className="rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              <a
+                href="/consult"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
               >
                 무료 상담 신청 폼 작성하기
-              </button>
+              </a>
             </div>
           </div>
         </div>
