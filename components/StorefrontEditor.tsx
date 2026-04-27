@@ -8,8 +8,15 @@ type LoadedImage = {
   height: number;
 };
 
+type MockupOrientation = 'horizontal' | 'vertical';
+
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.8;
+
+const MOCKUP_SRC: Record<MockupOrientation, string> = {
+  horizontal: '/mockups/bakery-horizontal.png',
+  vertical: '/mockups/bakery-vertical.png',
+};
 
 function useLoadedImage(src: string | null): LoadedImage | null {
   const [loaded, setLoaded] = useState<LoadedImage | null>(null);
@@ -36,13 +43,14 @@ export default function StorefrontEditor() {
   const [tvScale, setTvScale] = useState(0.7);
   const [tvPosition, setTvPosition] = useState({ x: 120, y: 220 });
   const [isDragging, setIsDragging] = useState(false);
+  const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
   const [business, setBusiness] = useState('');
   const [storeName, setStoreName] = useState('');
 
-  const overlayImage = useLoadedImage('/woob-tv-overlay.svg');
+  const overlayImage = useLoadedImage(MOCKUP_SRC[mockupOrientation]);
   const backgroundImage = useLoadedImage(uploadSrc);
 
   useEffect(() => {
@@ -110,14 +118,32 @@ export default function StorefrontEditor() {
   };
 
   const downloadImage = async () => {
-    if (!backgroundImage || !editorRef.current) return;
+    if (!backgroundImage || !overlayImage) return;
 
-    const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(editorRef.current, {
-      useCORS: true,
-      backgroundColor: null,
-      scale: 2,
-    });
+    const exportScale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.floor(editorWidth * exportScale);
+    canvas.height = Math.floor(editorHeight * exportScale);
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const bg = new window.Image();
+    bg.src = backgroundImage.src;
+    await bg.decode();
+
+    const overlay = new window.Image();
+    overlay.src = overlayImage.src;
+    await overlay.decode();
+
+    ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(
+      overlay,
+      tvPosition.x * exportScale,
+      tvPosition.y * exportScale,
+      scaledOverlaySize.width * exportScale,
+      scaledOverlaySize.height * exportScale,
+    );
 
     const anchor = document.createElement('a');
     anchor.href = canvas.toDataURL('image/png');
@@ -167,6 +193,34 @@ export default function StorefrontEditor() {
         </div>
 
         <div className="mt-4 rounded-xl bg-woob-sky p-4">
+          <p className="mb-2 text-sm font-medium text-slate-700">목업 방향</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setMockupOrientation('horizontal')}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                mockupOrientation === 'horizontal'
+                  ? 'bg-woob-blue text-white'
+                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              가로형
+            </button>
+            <button
+              type="button"
+              onClick={() => setMockupOrientation('vertical')}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                mockupOrientation === 'vertical'
+                  ? 'bg-woob-blue text-white'
+                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              세로형
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-xl bg-woob-sky p-4">
           <label htmlFor="tv-scale" className="mb-2 block text-sm font-medium text-slate-700">
             TV 크기 조절
           </label>
@@ -212,7 +266,7 @@ export default function StorefrontEditor() {
               <img
                 src={overlayImage.src}
                 alt="TV 오버레이"
-                className="h-full w-full pointer-events-none"
+                className="pointer-events-none h-full w-full"
                 draggable={false}
               />
             </div>
