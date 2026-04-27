@@ -9,16 +9,35 @@ type LoadedImage = {
 };
 
 type MockupOrientation = 'horizontal' | 'vertical';
+type MockupIndustry =
+  | 'flower'
+  | 'bakery'
+  | 'lifestyle'
+  | 'fashion'
+  | 'optical'
+  | 'nail'
+  | 'restaurant'
+  | 'hospital'
+  | 'other';
 
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.8;
 
-const MOCKUP_SRC: Record<MockupOrientation, string> = {
-  horizontal: '/mockups/bakery-horizontal.png',
-  vertical: '/mockups/bakery-vertical.png',
-};
+const FALLBACK_MOCKUP_SRC = '/mockups/bakery-horizontal.png';
 
-function useLoadedImage(src: string | null): LoadedImage | null {
+const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
+  { key: 'flower', label: '꽃집' },
+  { key: 'bakery', label: '베이커리' },
+  { key: 'lifestyle', label: '소품샵' },
+  { key: 'fashion', label: '옷가게' },
+  { key: 'optical', label: '안경점' },
+  { key: 'nail', label: '네일샵' },
+  { key: 'restaurant', label: '음식점' },
+  { key: 'hospital', label: '병원' },
+  { key: 'other', label: '그외' },
+];
+
+function useLoadedImage(src: string | null, fallbackSrc?: string): LoadedImage | null {
   const [loaded, setLoaded] = useState<LoadedImage | null>(null);
 
   useEffect(() => {
@@ -27,10 +46,33 @@ function useLoadedImage(src: string | null): LoadedImage | null {
       return;
     }
 
-    const img = new window.Image();
-    img.src = src;
-    img.onload = () => setLoaded({ src, width: img.width, height: img.height });
-  }, [src]);
+    let isCancelled = false;
+
+    const load = (targetSrc: string, onError?: () => void) => {
+      const img = new window.Image();
+      img.src = targetSrc;
+      img.onload = () => {
+        if (!isCancelled) {
+          setLoaded({ src: targetSrc, width: img.width, height: img.height });
+        }
+      };
+      img.onerror = () => {
+        if (!isCancelled) onError?.();
+      };
+    };
+
+    load(src, () => {
+      if (fallbackSrc && fallbackSrc !== src) {
+        load(fallbackSrc);
+      } else {
+        setLoaded(null);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [src, fallbackSrc]);
 
   return loaded;
 }
@@ -43,6 +85,7 @@ export default function StorefrontEditor() {
   const [tvScale, setTvScale] = useState(0.7);
   const [tvPosition, setTvPosition] = useState({ x: 120, y: 220 });
   const [isDragging, setIsDragging] = useState(false);
+  const [mockupIndustry, setMockupIndustry] = useState<MockupIndustry>('bakery');
   const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
   const [name, setName] = useState('');
@@ -50,7 +93,11 @@ export default function StorefrontEditor() {
   const [business, setBusiness] = useState('');
   const [storeName, setStoreName] = useState('');
 
-  const overlayImage = useLoadedImage(MOCKUP_SRC[mockupOrientation]);
+  const selectedMockupSrc = useMemo(
+    () => `/mockups/${mockupIndustry}-${mockupOrientation}.png`,
+    [mockupIndustry, mockupOrientation],
+  );
+  const overlayImage = useLoadedImage(selectedMockupSrc, FALLBACK_MOCKUP_SRC);
   const backgroundImage = useLoadedImage(uploadSrc);
 
   useEffect(() => {
@@ -192,31 +239,53 @@ export default function StorefrontEditor() {
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl bg-woob-sky p-4">
-          <p className="mb-2 text-sm font-medium text-slate-700">목업 방향</p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setMockupOrientation('horizontal')}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                mockupOrientation === 'horizontal'
-                  ? 'bg-woob-blue text-white'
-                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              가로형
-            </button>
-            <button
-              type="button"
-              onClick={() => setMockupOrientation('vertical')}
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                mockupOrientation === 'vertical'
-                  ? 'bg-woob-blue text-white'
-                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              세로형
-            </button>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl bg-woob-sky p-4">
+            <p className="mb-2 text-sm font-medium text-slate-700">업종 선택</p>
+            <div className="flex flex-wrap gap-2">
+              {INDUSTRY_OPTIONS.map((industry) => (
+                <button
+                  key={industry.key}
+                  type="button"
+                  onClick={() => setMockupIndustry(industry.key)}
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                    mockupIndustry === industry.key
+                      ? 'bg-woob-blue text-white'
+                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {industry.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-woob-sky p-4">
+            <p className="mb-2 text-sm font-medium text-slate-700">디스플레이 방향</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setMockupOrientation('horizontal')}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                  mockupOrientation === 'horizontal'
+                    ? 'bg-woob-blue text-white'
+                    : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                가로형
+              </button>
+              <button
+                type="button"
+                onClick={() => setMockupOrientation('vertical')}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                  mockupOrientation === 'vertical'
+                    ? 'bg-woob-blue text-white'
+                    : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                세로형
+              </button>
+            </div>
           </div>
         </div>
 
