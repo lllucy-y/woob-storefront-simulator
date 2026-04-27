@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { persistUtmParams, trackMetaCustomEvent, trackMetaPageView } from '@/lib/metaPixel';
 
 type LoadedImage = {
   src: string;
@@ -112,6 +113,9 @@ export default function StorefrontEditor() {
   const backgroundImage = useLoadedImage(uploadSrc);
 
   useEffect(() => {
+    persistUtmParams();
+    trackMetaPageView();
+
     const resize = () => {
       if (!editorRef.current) return;
       setEditorWidth(Math.max(280, Math.floor(editorRef.current.clientWidth)));
@@ -134,12 +138,17 @@ export default function StorefrontEditor() {
     };
   }, [overlayImage, tvScale]);
 
+  const onUploadButtonClick = () => {
+    trackMetaCustomEvent('upload_storefront_photo_click');
+  };
+
   const onUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const localUrl = URL.createObjectURL(file);
     setUploadSrc(localUrl);
     setTvPosition({ x: editorWidth * 0.35, y: editorHeight * 0.55 });
+    trackMetaCustomEvent('upload_storefront_photo_success');
   };
 
   const onOverlayPointerDown = (e: PointerEvent<HTMLDivElement>) => {
@@ -153,6 +162,7 @@ export default function StorefrontEditor() {
     const startY = e.clientY;
     const baseX = tvPosition.x;
     const baseY = tvPosition.y;
+    let hasMoved = false;
 
     setIsDragging(true);
 
@@ -170,11 +180,18 @@ export default function StorefrontEditor() {
       const nextX = clamp(baseX + deltaX, minX, maxX);
       const nextY = clamp(baseY + deltaY, minY, maxY);
 
+      if (Math.abs(deltaX) > 0 || Math.abs(deltaY) > 0) {
+        hasMoved = true;
+      }
+
       setTvPosition({ x: nextX, y: nextY });
     };
 
     const onUp = () => {
       setIsDragging(false);
+      if (hasMoved) {
+        trackMetaCustomEvent('mockup_dragged');
+      }
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
@@ -231,6 +248,8 @@ export default function StorefrontEditor() {
     anchor.href = canvas.toDataURL('image/png');
     anchor.download = `woob-simulation-${Date.now()}.png`;
     anchor.click();
+
+    trackMetaCustomEvent('simulation_image_downloaded');
   };
 
   return (
@@ -245,7 +264,10 @@ export default function StorefrontEditor() {
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">
+          <label
+            onClick={onUploadButtonClick}
+            className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
             매장 사진 업로드
             <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
           </label>
@@ -267,7 +289,11 @@ export default function StorefrontEditor() {
                 <button
                   key={industry.key}
                   type="button"
-                  onClick={() => setMockupIndustry(industry.key)}
+                  onClick={() => {
+                    if (mockupIndustry === industry.key) return;
+                    setMockupIndustry(industry.key);
+                    trackMetaCustomEvent('industry_selected', { industry: industry.key });
+                  }}
                   className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                     mockupIndustry === industry.key
                       ? 'bg-woob-blue text-white'
@@ -285,7 +311,11 @@ export default function StorefrontEditor() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => setMockupOrientation('horizontal')}
+                onClick={() => {
+                  if (mockupOrientation === 'horizontal') return;
+                  setMockupOrientation('horizontal');
+                  trackMetaCustomEvent('display_orientation_selected', { orientation: 'horizontal' });
+                }}
                 className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                   mockupOrientation === 'horizontal'
                     ? 'bg-woob-blue text-white'
@@ -296,7 +326,11 @@ export default function StorefrontEditor() {
               </button>
               <button
                 type="button"
-                onClick={() => setMockupOrientation('vertical')}
+                onClick={() => {
+                  if (mockupOrientation === 'vertical') return;
+                  setMockupOrientation('vertical');
+                  trackMetaCustomEvent('display_orientation_selected', { orientation: 'vertical' });
+                }}
                 className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                   mockupOrientation === 'vertical'
                     ? 'bg-woob-blue text-white'
@@ -374,7 +408,10 @@ export default function StorefrontEditor() {
 
         <button
           type="button"
-          onClick={() => setIsRequestModalOpen(true)}
+          onClick={() => {
+            setIsRequestModalOpen(true);
+            trackMetaCustomEvent('consultation_modal_opened');
+          }}
           className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue hover:bg-blue-50 sm:w-auto"
         >
           무료 상담 신청
@@ -418,6 +455,7 @@ export default function StorefrontEditor() {
               </button>
               <a
                 href="/consult"
+                onClick={() => trackMetaCustomEvent('consultation_form_click')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
