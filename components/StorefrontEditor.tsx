@@ -340,7 +340,7 @@ export default function StorefrontEditor() {
           우리 매장에 우브를 놓으면 어떤 모습일까요?
         </h1>
         <p className="mt-3 text-sm text-slate-600 sm:text-base">
-          매장 정면 사진 1장만 올리고, TV 배너를 직접 움직여보세요.
+          매장 사진을 1장 올린 후, 디지털배너 우브를 직접 움직여보세요.
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -647,10 +647,6 @@ export default function StorefrontEditor() {
         <p>
           개인정보 고지: 본 페이지는 브라우저 내에서만 이미지를 처리하며, 업로드한 매장 사진은 서버에 저장되지
           않습니다.
-        </p>
-        <p>
-          설치 안내: 시뮬레이션 결과는 이해를 돕기 위한 예시이며, 실제 설치 가능 여부/크기/위치는 현장 실측 및
-          구조 점검 후 최종 확정됩니다.
         </p>
       </footer>
     </main>
