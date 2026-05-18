@@ -26,6 +26,63 @@ const MAX_SCALE = 1.8;
 
 const FALLBACK_MOCKUP_SRC = '/mockups/bakery-horizontal.png';
 
+type PackageKey = 'light' | 'standard' | 'premium';
+
+type WoobPackage = {
+  key: PackageKey;
+  name: string;
+  subtitle: string;
+  summary: string;
+  bullets: string[];
+  regularPrice: string;
+  monthlyPrice: string;
+  mallUrl: string;
+};
+
+const CONSULT_FORM_URL = '/consult';
+
+const WOOB_PACKAGES: WoobPackage[] = [
+  {
+    key: 'light',
+    name: '라이트 패키지',
+    subtitle: '홍보 영상 1종과 스마트 TV로 바로 시작하는 기본 구성',
+    summary: '홍보 영상 1종(80초 내외) + 스마트 TV + 거치대',
+    bullets: ['홍보 영상 1종 제작', '32인치 스마트 TV 기본 구성', '이동식 거치대 제공', 'TV 색상과 사이즈 옵션 선택 가능'],
+    regularPrice: '968,000원',
+    monthlyPrice: '월 80,667원',
+    mallUrl:
+      'https://woob.life/product/%EB%9D%BC%EC%9D%B4%ED%8A%B8-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-1%EC%A2%8580%EC%B4%88-%EB%82%B4%EC%99%B8-%EC%8A%A4%EB%A7%88%ED%8A%B8-tv%EA%B1%B0%EC%B9%98%EB%8C%80/27/category/1/display/4/?icid=MAIN.product_listmain_3',
+  },
+  {
+    key: 'standard',
+    name: '스탠다드 패키지',
+    subtitle: '홍보 영상 2종으로 가게의 매력을 더 다양하게 보여주는 구성',
+    summary: '홍보 영상 2종(각 80초 내외) + 스마트 TV + 이동식 거치대',
+    bullets: ['홍보 영상 2종 제작', '32인치 스마트 TV 기본 구성', '이동식 거치대 제공', 'TV 색상과 사이즈 옵션 선택 가능'],
+    regularPrice: '1,089,000원',
+    monthlyPrice: '월 90,750원',
+    mallUrl:
+      'https://woob.life/product/%EC%8A%A4%ED%83%A0%EB%8B%A4%EB%93%9C-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-2%EC%A2%85%EA%B0%81-80%EC%B4%88-%EB%82%B4%EC%99%B8%EC%8A%A4%EB%A7%88%ED%8A%B8tv%EC%9D%B4%EB%8F%99%EC%8B%9D%EA%B1%B0%EC%B9%98%EB%8C%80/37/category/1/display/4/?icid=MAIN.product_listmain_3',
+  },
+  {
+    key: 'premium',
+    name: '프리미엄 패키지',
+    subtitle: '홍보 영상과 매장 전용 홈페이지까지 연결하는 고급 구성',
+    summary: '홍보 영상 2종 + 매장 전용 홈페이지 + 스마트 TV + 거치대',
+    bullets: [
+      '홍보 영상 2종 제작',
+      '매장 전용 홈페이지 제작',
+      '32인치 스마트 TV 기본 구성',
+      '이동식 거치대 제공',
+      'TV 색상과 사이즈 옵션 선택 가능',
+    ],
+    regularPrice: '1,815,000원',
+    monthlyPrice: '월 151,250원',
+    mallUrl:
+      'https://woob.life/product/%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-2%EC%A2%85%EA%B0%8180%EC%B4%88-%EB%82%B4%EC%99%B8%EB%A7%A4%EC%9E%A5%EC%A0%84%EC%9A%A9%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80%EC%8A%A4%EB%A7%88%ED%8A%B8tv%EA%B1%B0%EC%B9%98%EB%8C%80/28/category/1/display/4/?icid=MAIN.product_listmain_3',
+  },
+];
+
 const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
   { key: 'flower', label: '꽃집' },
   { key: 'bakery', label: '베이커리' },
@@ -103,7 +160,7 @@ export default function StorefrontEditor() {
   const [mockupIndustry, setMockupIndustry] = useState<MockupIndustry>('bakery');
   const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [selectedPackageKey, setSelectedPackageKey] = useState<PackageKey | null>(null);
 
   const selectedMockupSrc = useMemo(
     () => `/mockups/${mockupIndustry}-${mockupOrientation}.png`,
@@ -137,6 +194,8 @@ export default function StorefrontEditor() {
       height: overlayImage.height * tvScale,
     };
   }, [overlayImage, tvScale]);
+
+  const selectedPackage = WOOB_PACKAGES.find((woobPackage) => woobPackage.key === selectedPackageKey) ?? null;
 
   const onUploadButtonClick = () => {
     trackMetaCustomEvent('upload_storefront_photo_click');
@@ -406,61 +465,144 @@ export default function StorefrontEditor() {
           목업은 손가락으로 끌어서 원하는 위치에 배치할 수 있어요.
         </p>
 
-        <button
-          type="button"
-          onClick={() => {
-            setIsRequestModalOpen(true);
-            trackMetaCustomEvent('consultation_modal_opened');
-          }}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue hover:bg-blue-50 sm:w-auto"
+        <a
+          href={CONSULT_FORM_URL}
+          onClick={() => trackMetaCustomEvent('consultation_form_click')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-woob-blue px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition hover:bg-blue-900 hover:shadow-xl sm:w-auto"
         >
           무료 상담 신청
-        </button>
+        </a>
       </section>
 
-      {isRequestModalOpen ? (
+      <section className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-woob-blue">추천 패키지</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">우브 패키지별 구성</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              시뮬레이션 결과를 바탕으로 매장에 맞는 패키지를 비교해 보세요.
+            </p>
+          </div>
+          <a
+            href={CONSULT_FORM_URL}
+            onClick={() => trackMetaCustomEvent('consultation_form_click')}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-full items-center justify-center rounded-xl bg-woob-blue px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition hover:bg-blue-900 hover:shadow-xl sm:w-auto"
+          >
+            무료 상담 신청
+          </a>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {WOOB_PACKAGES.map((woobPackage) => (
+            <article
+              key={woobPackage.key}
+              className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            >
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">{woobPackage.name}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{woobPackage.subtitle}</p>
+              </div>
+              <div className="mt-5 rounded-xl bg-woob-sky p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-woob-blue">구성</p>
+                <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-800">{woobPackage.summary}</p>
+              </div>
+              <div className="mt-5 space-y-1">
+                <p className="text-sm text-slate-500">정가</p>
+                <p className="text-xl font-bold text-slate-900">{woobPackage.regularPrice}</p>
+                <p className="text-sm font-semibold text-woob-blue">{woobPackage.monthlyPrice}</p>
+                <p className="text-xs text-slate-500">*12개월 할부 기준</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPackageKey(woobPackage.key);
+                  trackMetaCustomEvent('package_detail_opened', { package: woobPackage.key });
+                }}
+                className="mt-auto inline-flex w-full items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:border-woob-blue hover:bg-woob-sky hover:text-woob-blue"
+              >
+                패키지 상세 보기
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {selectedPackage ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="request-modal-title"
+          aria-labelledby="package-modal-title"
         >
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+          <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between gap-4">
-              <h2 id="request-modal-title" className="text-xl font-bold text-slate-900">
-                무료 상담 신청
-              </h2>
+              <div>
+                <h2 id="package-modal-title" className="text-xl font-bold text-slate-900">
+                  패키지 상세 보기
+                </h2>
+                <p className="mt-3 text-lg font-bold text-woob-blue">{selectedPackage.name}</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">{selectedPackage.subtitle}</p>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsRequestModalOpen(false)}
+                onClick={() => setSelectedPackageKey(null)}
                 className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                 aria-label="모달 닫기"
               >
                 닫기
               </button>
             </div>
-            <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">
-              지금 만든 시뮬레이션 이미지를 저장한 뒤, 상담 신청 폼에 첨부해 주세요.
-              {'\n'}
-              담당자가 실제 설치 가능 위치와 무료 시안을 함께 확인해 드립니다.
+
+            <div className="mt-6 rounded-xl bg-woob-sky p-5">
+              <h3 className="text-sm font-bold text-slate-900">구성</h3>
+              <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
+                {selectedPackage.bullets.map((bullet) => (
+                  <li key={bullet} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-woob-blue" aria-hidden="true" />
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <dl className="mt-6 grid gap-3 rounded-xl border border-slate-200 p-5 sm:grid-cols-2">
+              <div>
+                <dt className="text-sm text-slate-500">정가</dt>
+                <dd className="mt-1 text-xl font-bold text-slate-900">{selectedPackage.regularPrice}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-slate-500">월 환산 가격</dt>
+                <dd className="mt-1 text-xl font-bold text-woob-blue">{selectedPackage.monthlyPrice}</dd>
+                <p className="mt-1 text-xs text-slate-500">*12개월 할부 기준</p>
+              </div>
+            </dl>
+
+            <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+              정확한 금액은 TV 색상과 사이즈 옵션, 설치 환경에 따라 달라질 수 있습니다.
             </p>
-            <div className="mt-5 grid gap-2">
-              <button
-                type="button"
-                onClick={downloadImage}
-                disabled={!backgroundImage}
-                className="rounded-lg bg-woob-blue px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                시뮬레이션 이미지 저장하기
-              </button>
+
+            <div className="mt-6 grid gap-2 sm:grid-cols-2">
               <a
-                href="/consult"
-                onClick={() => trackMetaCustomEvent('consultation_form_click')}
+                href={CONSULT_FORM_URL}
+                onClick={() => trackMetaCustomEvent('consultation_form_click', { package: selectedPackage.key })}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-xl bg-woob-blue px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-blue-900"
               >
-                무료 상담 신청 폼 작성하기
+                이 패키지로 상담 신청
+              </a>
+              <a
+                href={selectedPackage.mallUrl}
+                onClick={() => trackMetaCustomEvent('woob_mall_package_click', { package: selectedPackage.key })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+              >
+                우브몰에서 자세히 보기
               </a>
             </div>
           </div>
