@@ -43,7 +43,7 @@ type PackageOption = {
   mallUrl: string;
 };
 
-const CONSULT_URL = '/consult';
+const CONSULT_FORM_URL = 'https://thealt.notion.site/29a1bf73c34d815cb242de566247d572?pvs=105';
 
 const PACKAGE_OPTIONS: PackageOption[] = [
   {
@@ -183,7 +183,6 @@ export default function StorefrontEditor() {
   const [mockupIndustry, setMockupIndustry] = useState<MockupIndustry>('bakery');
   const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<PackageOption | null>(null);
 
   const selectedMockupSrc = useMemo(
@@ -296,6 +295,11 @@ export default function StorefrontEditor() {
       y: clamp(prev.y, minY, maxY),
     }));
   }, [backgroundImage, overlayImage, editorWidth, editorHeight, scaledOverlaySize.width, scaledOverlaySize.height]);
+
+  const openConsultForm = (eventProperties?: Record<string, string>) => {
+    trackMetaCustomEvent('consultation_form_click', eventProperties);
+    window.location.href = CONSULT_FORM_URL;
+  };
 
   const downloadImage = async () => {
     if (!backgroundImage || !overlayImage) return;
@@ -489,10 +493,7 @@ export default function StorefrontEditor() {
 
         <button
           type="button"
-          onClick={() => {
-            setIsRequestModalOpen(true);
-            trackMetaCustomEvent('consultation_modal_opened');
-          }}
+          onClick={() => openConsultForm()}
           className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-transparent bg-woob-blue px-5 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(31,63,191,0.22)] transition hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-woob-blue sm:w-auto"
         >
           무료 상담 신청
@@ -627,17 +628,13 @@ export default function StorefrontEditor() {
             </p>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
-              <a
-                href={CONSULT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() =>
-                  trackMetaCustomEvent('consultation_form_click', { selectedPackage: selectedPackage.title })
-                }
+              <button
+                type="button"
+                onClick={() => openConsultForm({ selectedPackage: selectedPackage.title })}
                 className="rounded-xl bg-woob-blue px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-800"
               >
                 이 패키지로 상담 신청
-              </a>
+              </button>
               <a
                 href={selectedPackage.mallUrl}
                 target="_blank"
@@ -654,54 +651,6 @@ export default function StorefrontEditor() {
         </div>
       ) : null}
 
-      {isRequestModalOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="request-modal-title"
-        >
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-start justify-between gap-4">
-              <h2 id="request-modal-title" className="text-xl font-bold text-slate-900">
-                무료 상담 신청
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsRequestModalOpen(false)}
-                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                aria-label="모달 닫기"
-              >
-                닫기
-              </button>
-            </div>
-            <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">
-              지금 만든 시뮬레이션 이미지를 저장한 뒤, 상담 신청 폼에 첨부해 주세요.
-              {'\n'}
-              담당자가 실제 설치 가능 위치와 무료 시안을 함께 확인해 드립니다.
-            </p>
-            <div className="mt-5 grid gap-2">
-              <button
-                type="button"
-                onClick={downloadImage}
-                disabled={!backgroundImage}
-                className="rounded-lg bg-woob-blue px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                시뮬레이션 이미지 저장하기
-              </button>
-              <a
-                href="/consult"
-                onClick={() => trackMetaCustomEvent('consultation_form_click')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
-              >
-                무료 상담 신청 폼 작성하기
-              </a>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       <footer className="mt-8 space-y-2 rounded-2xl bg-white p-5 text-xs leading-relaxed text-slate-600 ring-1 ring-slate-200 sm:p-6">
         <p>
