@@ -26,6 +26,77 @@ const MAX_SCALE = 1.8;
 
 const FALLBACK_MOCKUP_SRC = '/mockups/bakery-horizontal.png';
 
+type PackageInfo = {
+  name: string;
+  description: string;
+  summary: string;
+  price: string;
+  subtitle: string;
+  details: string[];
+  badge?: string;
+  variant: 'light' | 'standard' | 'premium';
+};
+
+const PACKAGE_OPTIONS: PackageInfo[] = [
+  {
+    name: '라이트 패키지',
+    description: '처음 테스트하는 매장',
+    summary: '홍보 영상 1종 + 스마트TV + 이동식 거치대',
+    price: '968,000원',
+    subtitle: '소형 매장 시작용',
+    details: [
+      '홍보 영상 1종',
+      '32인치 스마트TV + 이동식 거치대',
+      '처음 테스트하는 매장에 추천',
+      '기본 구성으로 빠르게 시작',
+    ],
+    variant: 'light',
+  },
+  {
+    name: '스탠다드 패키지',
+    description: '가장 많이 선택하는 기본 추천 패키지',
+    summary: '홍보 영상 2종 + 스마트TV + 이동식 거치대',
+    price: '1,089,000원',
+    subtitle: '가장 많이 선택하는 기본 추천 패키지',
+    details: [
+      '홍보 영상 2종',
+      '32인치 스마트TV + 이동식 거치대',
+      '시즌/이벤트 홍보까지 운영하기 좋음',
+      '가장 균형 잡힌 기본 추천 구성',
+    ],
+    badge: '추천',
+    variant: 'standard',
+  },
+  {
+    name: '프리미엄 패키지',
+    description: '브랜드페이지까지 필요한 매장',
+    summary: '홍보 영상 2종 + 매장 전용 홈페이지 + 스마트TV + 이동식 거치대',
+    price: '1,815,000원',
+    subtitle: '브랜드페이지까지 필요한 매장',
+    details: [
+      '홍보 영상 2종',
+      '매장 전용 홈페이지',
+      '32인치 스마트TV + 이동식 거치대',
+      '예약/안내/브랜딩 동선까지 함께 필요한 매장에 추천',
+    ],
+    variant: 'premium',
+  },
+];
+
+const PACKAGE_OPTION_NOTICE = '※ TV 색상과 사이즈 옵션에 따라 추가 금액이 달라질 수 있습니다.';
+
+const summaryCardClasses: Record<PackageInfo['variant'], string> = {
+  light: 'border-slate-200 bg-white',
+  standard: 'border-woob-blue bg-blue-50 shadow-sm ring-1 ring-blue-100',
+  premium: 'border-emerald-100 bg-emerald-50/70',
+};
+
+const modalCardClasses: Record<PackageInfo['variant'], string> = {
+  light: 'border-slate-200 bg-white',
+  standard: 'border-woob-blue bg-blue-50/90 ring-1 ring-blue-100',
+  premium: 'border-emerald-100 bg-emerald-50/80',
+};
+
 const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
   { key: 'flower', label: '꽃집' },
   { key: 'bakery', label: '베이커리' },
@@ -104,6 +175,7 @@ export default function StorefrontEditor() {
   const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
 
   const selectedMockupSrc = useMemo(
     () => `/mockups/${mockupIndustry}-${mockupOrientation}.png`,
@@ -140,6 +212,11 @@ export default function StorefrontEditor() {
 
   const onUploadButtonClick = () => {
     trackMetaCustomEvent('upload_storefront_photo_click');
+  };
+
+  const openConsultationModal = () => {
+    setIsRequestModalOpen(true);
+    trackMetaCustomEvent('consultation_modal_opened');
   };
 
   const onUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -215,6 +292,26 @@ export default function StorefrontEditor() {
       y: clamp(prev.y, minY, maxY),
     }));
   }, [backgroundImage, overlayImage, editorWidth, editorHeight, scaledOverlaySize.width, scaledOverlaySize.height]);
+
+  useEffect(() => {
+    if (!isPackageModalOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsPackageModalOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isPackageModalOpen]);
 
   const downloadImage = async () => {
     if (!backgroundImage || !overlayImage) return;
@@ -406,17 +503,171 @@ export default function StorefrontEditor() {
           목업은 손가락으로 끌어서 원하는 위치에 배치할 수 있어요.
         </p>
 
-        <button
-          type="button"
-          onClick={() => {
-            setIsRequestModalOpen(true);
-            trackMetaCustomEvent('consultation_modal_opened');
-          }}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue hover:bg-blue-50 sm:w-auto"
+        <section
+          className="mt-8 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 sm:p-6"
+          aria-labelledby="package-summary-title"
         >
-          무료 상담 신청
-        </button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 id="package-summary-title" className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                추천 패키지 & 예상 가격
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base">
+                매장 규모와 운영 방식에 따라 가장 많이 선택하는 패키지를 확인해보세요.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
+            {PACKAGE_OPTIONS.map((packageOption) => (
+              <article
+                key={packageOption.name}
+                className={`relative flex min-w-[250px] snap-center flex-col rounded-2xl border p-4 ${summaryCardClasses[packageOption.variant]}`}
+              >
+                {packageOption.variant === 'standard' ? (
+                  <span className="mb-3 inline-flex w-fit items-center rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white">
+                    가장 많이 선택
+                  </span>
+                ) : null}
+                <h3 className="text-base font-bold text-slate-900">{packageOption.name}</h3>
+                <p className="mt-2 min-h-10 text-sm font-medium leading-relaxed text-slate-600">
+                  {packageOption.description}
+                </p>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-700">{packageOption.summary}</p>
+                <p className="mt-4 text-xl font-extrabold tracking-tight text-slate-950">{packageOption.price}</p>
+              </article>
+            ))}
+          </div>
+
+          <p className="mt-4 text-xs leading-relaxed text-slate-500 sm:text-sm">{PACKAGE_OPTION_NOTICE}</p>
+
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => setIsPackageModalOpen(true)}
+              className="inline-flex w-full items-center justify-center rounded-xl bg-woob-blue px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:w-auto"
+            >
+              패키지 자세히 보기
+            </button>
+            <button
+              type="button"
+              onClick={openConsultationModal}
+              className="inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue hover:bg-blue-50 sm:w-auto"
+            >
+              무료 상담 신청
+            </button>
+          </div>
+        </section>
       </section>
+
+      {isPackageModalOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsPackageModalOpen(false);
+            }
+          }}
+        >
+          <div
+            className="flex max-h-[92vh] w-full flex-col rounded-t-3xl bg-white shadow-2xl sm:max-h-[88vh] sm:max-w-3xl sm:rounded-3xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="package-modal-title"
+            aria-describedby="package-modal-description"
+          >
+            <div className="border-b border-slate-100 px-5 pb-4 pt-3 sm:px-6">
+              <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-200" aria-hidden="true" />
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="package-modal-title" className="text-xl font-bold text-slate-950 sm:text-2xl">
+                    패키지별 가격 안내
+                  </h2>
+                  <p
+                    id="package-modal-description"
+                    className="mt-2 text-sm leading-relaxed text-slate-600 sm:text-base"
+                  >
+                    매장 규모와 설치 환경에 따라 다양한 패키지를 선택할 수 있어요.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPackageModalOpen(false)}
+                  className="rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                  aria-label="패키지 안내 닫기"
+                >
+                  <span aria-hidden="true" className="text-xl leading-none">
+                    ×
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+              <div className="grid gap-4">
+                {PACKAGE_OPTIONS.map((packageOption) => (
+                  <article
+                    key={packageOption.name}
+                    className={`rounded-2xl border p-4 ${modalCardClasses[packageOption.variant]}`}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-bold text-slate-950">{packageOption.name}</h3>
+                          {packageOption.badge ? (
+                            <span className="rounded-full bg-woob-blue px-2.5 py-1 text-xs font-bold text-white">
+                              {packageOption.badge}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 text-sm font-semibold text-slate-600">{packageOption.subtitle}</p>
+                      </div>
+                      <p className="text-xl font-extrabold tracking-tight text-slate-950">{packageOption.price}</p>
+                    </div>
+                    <ul className="mt-4 grid gap-2 text-sm leading-relaxed text-slate-700 sm:grid-cols-2">
+                      {packageOption.details.map((detail) => (
+                        <li key={detail} className="flex gap-2">
+                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-woob-blue" aria-hidden="true" />
+                          <span>{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-2xl bg-slate-100 p-4 text-sm leading-relaxed text-slate-700">
+                <p className="font-semibold text-slate-900">
+                  정확한 금액은 TV 색상과 사이즈 옵션, 설치 환경에 따라 달라질 수 있습니다.
+                </p>
+                <p className="mt-1 text-slate-600">상세 옵션은 우브몰 패키지 페이지에서 확인할 수 있어요.</p>
+              </div>
+            </div>
+
+            <div className="grid gap-2 border-t border-slate-100 bg-white px-5 py-4 sm:grid-cols-2 sm:px-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPackageModalOpen(false);
+                  openConsultationModal();
+                }}
+                className="rounded-xl bg-woob-blue px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                이 가격으로 상담 신청
+              </button>
+              <a
+                href="https://www.woob.life"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                우브몰 패키지 보기
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isRequestModalOpen ? (
         <div
