@@ -503,8 +503,7 @@ export default function StorefrontEditor() {
         <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-8">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-woob-blue">추천 패키지</p>
-              <h2 className="mt-1 text-2xl font-bold text-slate-900">시뮬레이션 결과에 맞는 패키지</h2>
+              <h2 className="mt-1 text-2xl font-bold text-slate-900">우브 패키지 비교 요약</h2>
               <p className="mt-2 text-sm text-slate-600">
                 매장 상황에 맞춰 시작하기 좋은 구성부터 브랜드페이지 포함 구성까지 비교해 보세요.
               </p>
