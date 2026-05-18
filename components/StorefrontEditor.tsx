@@ -1,7 +1,18 @@
-'use client';
+"use client";
 
-import { ChangeEvent, PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { persistUtmParams, trackMetaCustomEvent, trackMetaPageView } from '@/lib/metaPixel';
+import {
+  ChangeEvent,
+  PointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  persistUtmParams,
+  trackMetaCustomEvent,
+  trackMetaPageView,
+} from "@/lib/metaPixel";
 
 type LoadedImage = {
   src: string;
@@ -9,36 +20,89 @@ type LoadedImage = {
   height: number;
 };
 
-type MockupOrientation = 'horizontal' | 'vertical';
+type MockupOrientation = "horizontal" | "vertical";
+
+type WoobPackage = {
+  name: string;
+  badge: string;
+  price: string;
+  description: string;
+  details: string[];
+  mallHref: string;
+};
 type MockupIndustry =
-  | 'flower'
-  | 'bakery'
-  | 'lifestyle'
-  | 'fashion'
-  | 'optical'
-  | 'nail'
-  | 'restaurant'
-  | 'hospital'
-  | 'other';
+  | "flower"
+  | "bakery"
+  | "lifestyle"
+  | "fashion"
+  | "optical"
+  | "nail"
+  | "restaurant"
+  | "hospital"
+  | "other";
 
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.8;
 
-const FALLBACK_MOCKUP_SRC = '/mockups/bakery-horizontal.png';
+const FALLBACK_MOCKUP_SRC = "/mockups/bakery-horizontal.png";
+const WOOB_MALL_HREF = "https://woobmall.com";
 
-const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
-  { key: 'flower', label: '꽃집' },
-  { key: 'bakery', label: '베이커리' },
-  { key: 'lifestyle', label: '소품샵' },
-  { key: 'fashion', label: '옷가게' },
-  { key: 'optical', label: '안경점' },
-  { key: 'nail', label: '네일샵' },
-  { key: 'restaurant', label: '음식점' },
-  { key: 'hospital', label: '병원' },
-  { key: 'other', label: '그외' },
+const WOOB_PACKAGES: WoobPackage[] = [
+  {
+    name: "우브 스타터 패키지",
+    badge: "추천 입문 구성",
+    price: "상담 후 맞춤 견적",
+    description:
+      "작은 매장에서도 부담 없이 디지털 배너를 시작할 수 있는 기본 구성입니다.",
+    details: [
+      "매장 업종에 맞춘 디스플레이 방향 상담",
+      "기본 설치 위치 가이드",
+      "운영 콘텐츠 구성 상담",
+    ],
+    mallHref: WOOB_MALL_HREF,
+  },
+  {
+    name: "우브 스탠다드 패키지",
+    badge: "매장 홍보 강화",
+    price: "상담 후 맞춤 견적",
+    description:
+      "매장 전면 노출과 프로모션 운영을 함께 고려하는 대표 추천 구성입니다.",
+    details: [
+      "디스플레이/스탠드 조합 상담",
+      "프로모션 콘텐츠 운영 가이드",
+      "설치 가능 위치 사전 검토",
+    ],
+    mallHref: WOOB_MALL_HREF,
+  },
+  {
+    name: "우브 프리미엄 패키지",
+    badge: "집중 노출 구성",
+    price: "상담 후 맞춤 견적",
+    description:
+      "상권 노출이 중요한 매장에 맞춰 디스플레이 활용도를 높이는 구성입니다.",
+    details: [
+      "복수 노출 위치 컨설팅",
+      "상권/동선 기반 시안 상담",
+      "운영 목적별 콘텐츠 제안",
+    ],
+    mallHref: WOOB_MALL_HREF,
+  },
 ];
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
+  { key: "flower", label: "꽃집" },
+  { key: "bakery", label: "베이커리" },
+  { key: "lifestyle", label: "소품샵" },
+  { key: "fashion", label: "옷가게" },
+  { key: "optical", label: "안경점" },
+  { key: "nail", label: "네일샵" },
+  { key: "restaurant", label: "음식점" },
+  { key: "hospital", label: "병원" },
+  { key: "other", label: "그외" },
+];
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
 
 const getDragBounds = (
   containerWidth: number,
@@ -52,7 +116,10 @@ const getDragBounds = (
   maxY: containerHeight - overlayHeight * 0.5,
 });
 
-function useLoadedImage(src: string | null, fallbackSrc?: string): LoadedImage | null {
+function useLoadedImage(
+  src: string | null,
+  fallbackSrc?: string,
+): LoadedImage | null {
   const [loaded, setLoaded] = useState<LoadedImage | null>(null);
 
   useEffect(() => {
@@ -100,10 +167,15 @@ export default function StorefrontEditor() {
   const [tvScale, setTvScale] = useState(0.7);
   const [tvPosition, setTvPosition] = useState({ x: 120, y: 220 });
   const [isDragging, setIsDragging] = useState(false);
-  const [mockupIndustry, setMockupIndustry] = useState<MockupIndustry>('bakery');
-  const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
+  const [mockupIndustry, setMockupIndustry] =
+    useState<MockupIndustry>("bakery");
+  const [mockupOrientation, setMockupOrientation] =
+    useState<MockupOrientation>("horizontal");
 
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<WoobPackage | null>(
+    null,
+  );
 
   const selectedMockupSrc = useMemo(
     () => `/mockups/${mockupIndustry}-${mockupOrientation}.png`,
@@ -111,6 +183,10 @@ export default function StorefrontEditor() {
   );
   const overlayImage = useLoadedImage(selectedMockupSrc, FALLBACK_MOCKUP_SRC);
   const backgroundImage = useLoadedImage(uploadSrc);
+  const hasUserUploadedImage = Boolean(
+    uploadSrc && backgroundImage?.src === uploadSrc,
+  );
+  const shouldShowPackageSection = hasUserUploadedImage;
 
   useEffect(() => {
     persistUtmParams();
@@ -121,13 +197,18 @@ export default function StorefrontEditor() {
       setEditorWidth(Math.max(280, Math.floor(editorRef.current.clientWidth)));
     };
     resize();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
   }, []);
 
   const editorHeight = useMemo(() => {
     if (!backgroundImage) return Math.floor(editorWidth * 0.7);
-    return Math.max(240, Math.floor((backgroundImage.height / backgroundImage.width) * editorWidth));
+    return Math.max(
+      240,
+      Math.floor(
+        (backgroundImage.height / backgroundImage.width) * editorWidth,
+      ),
+    );
   }, [backgroundImage, editorWidth]);
 
   const scaledOverlaySize = useMemo(() => {
@@ -139,7 +220,7 @@ export default function StorefrontEditor() {
   }, [overlayImage, tvScale]);
 
   const onUploadButtonClick = () => {
-    trackMetaCustomEvent('upload_storefront_photo_click');
+    trackMetaCustomEvent("upload_storefront_photo_click");
   };
 
   const onUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +229,7 @@ export default function StorefrontEditor() {
     const localUrl = URL.createObjectURL(file);
     setUploadSrc(localUrl);
     setTvPosition({ x: editorWidth * 0.35, y: editorHeight * 0.55 });
-    trackMetaCustomEvent('upload_storefront_photo_success');
+    trackMetaCustomEvent("upload_storefront_photo_success");
   };
 
   const onOverlayPointerDown = (e: PointerEvent<HTMLDivElement>) => {
@@ -190,14 +271,14 @@ export default function StorefrontEditor() {
     const onUp = () => {
       setIsDragging(false);
       if (hasMoved) {
-        trackMetaCustomEvent('mockup_dragged');
+        trackMetaCustomEvent("mockup_dragged");
       }
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
     };
 
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   };
 
   useEffect(() => {
@@ -214,17 +295,24 @@ export default function StorefrontEditor() {
       x: clamp(prev.x, minX, maxX),
       y: clamp(prev.y, minY, maxY),
     }));
-  }, [backgroundImage, overlayImage, editorWidth, editorHeight, scaledOverlaySize.width, scaledOverlaySize.height]);
+  }, [
+    backgroundImage,
+    overlayImage,
+    editorWidth,
+    editorHeight,
+    scaledOverlaySize.width,
+    scaledOverlaySize.height,
+  ]);
 
   const downloadImage = async () => {
     if (!backgroundImage || !overlayImage) return;
 
     const exportScale = 2;
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = Math.floor(editorWidth * exportScale);
     canvas.height = Math.floor(editorHeight * exportScale);
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const bg = new window.Image();
@@ -244,18 +332,20 @@ export default function StorefrontEditor() {
       scaledOverlaySize.height * exportScale,
     );
 
-    const anchor = document.createElement('a');
-    anchor.href = canvas.toDataURL('image/png');
+    const anchor = document.createElement("a");
+    anchor.href = canvas.toDataURL("image/png");
     anchor.download = `woob-simulation-${Date.now()}.png`;
     anchor.click();
 
-    trackMetaCustomEvent('simulation_image_downloaded');
+    trackMetaCustomEvent("simulation_image_downloaded");
   };
 
   return (
     <main className="mx-auto w-full max-w-5xl p-4 pb-16 sm:p-6">
       <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-8">
-        <p className="text-sm font-semibold text-woob-blue">우브(WooB) 매장 시뮬레이터</p>
+        <p className="text-sm font-semibold text-woob-blue">
+          우브(WooB) 매장 시뮬레이터
+        </p>
         <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-4xl">
           우리 매장에 우브를 놓으면 어떤 모습일까요?
         </h1>
@@ -269,7 +359,12 @@ export default function StorefrontEditor() {
             className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
             매장 사진 업로드
-            <input type="file" accept="image/*" className="hidden" onChange={onUpload} />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onUpload}
+            />
           </label>
           <button
             type="button"
@@ -292,12 +387,14 @@ export default function StorefrontEditor() {
                   onClick={() => {
                     if (mockupIndustry === industry.key) return;
                     setMockupIndustry(industry.key);
-                    trackMetaCustomEvent('industry_selected', { industry: industry.key });
+                    trackMetaCustomEvent("industry_selected", {
+                      industry: industry.key,
+                    });
                   }}
                   className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                     mockupIndustry === industry.key
-                      ? 'bg-woob-blue text-white'
-                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                      ? "bg-woob-blue text-white"
+                      : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {industry.label}
@@ -307,19 +404,23 @@ export default function StorefrontEditor() {
           </div>
 
           <div className="rounded-xl bg-woob-sky p-4">
-            <p className="mb-2 text-sm font-medium text-slate-700">디스플레이 방향</p>
+            <p className="mb-2 text-sm font-medium text-slate-700">
+              디스플레이 방향
+            </p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => {
-                  if (mockupOrientation === 'horizontal') return;
-                  setMockupOrientation('horizontal');
-                  trackMetaCustomEvent('display_orientation_selected', { orientation: 'horizontal' });
+                  if (mockupOrientation === "horizontal") return;
+                  setMockupOrientation("horizontal");
+                  trackMetaCustomEvent("display_orientation_selected", {
+                    orientation: "horizontal",
+                  });
                 }}
                 className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                  mockupOrientation === 'horizontal'
-                    ? 'bg-woob-blue text-white'
-                    : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  mockupOrientation === "horizontal"
+                    ? "bg-woob-blue text-white"
+                    : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                 }`}
               >
                 가로형
@@ -327,14 +428,16 @@ export default function StorefrontEditor() {
               <button
                 type="button"
                 onClick={() => {
-                  if (mockupOrientation === 'vertical') return;
-                  setMockupOrientation('vertical');
-                  trackMetaCustomEvent('display_orientation_selected', { orientation: 'vertical' });
+                  if (mockupOrientation === "vertical") return;
+                  setMockupOrientation("vertical");
+                  trackMetaCustomEvent("display_orientation_selected", {
+                    orientation: "vertical",
+                  });
                 }}
                 className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                  mockupOrientation === 'vertical'
-                    ? 'bg-woob-blue text-white'
-                    : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  mockupOrientation === "vertical"
+                    ? "bg-woob-blue text-white"
+                    : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                 }`}
               >
                 세로형
@@ -344,7 +447,10 @@ export default function StorefrontEditor() {
         </div>
 
         <div className="mt-4 rounded-xl bg-woob-sky p-4">
-          <label htmlFor="tv-scale" className="mb-2 block text-sm font-medium text-slate-700">
+          <label
+            htmlFor="tv-scale"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
             TV 크기 조절
           </label>
           <input
@@ -378,13 +484,13 @@ export default function StorefrontEditor() {
               role="button"
               aria-label="TV 오버레이 드래그"
               onPointerDown={onOverlayPointerDown}
-              className={`absolute touch-none select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+              className={`absolute touch-none select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
               style={{
                 left: `${tvPosition.x}px`,
                 top: `${tvPosition.y}px`,
                 width: `${scaledOverlaySize.width}px`,
                 height: `${scaledOverlaySize.height}px`,
-                touchAction: 'none',
+                touchAction: "none",
               }}
             >
               <img
@@ -398,7 +504,8 @@ export default function StorefrontEditor() {
 
           {!backgroundImage ? (
             <p className="p-4 text-center text-sm text-slate-600">
-              사진을 업로드하면 이 영역에서 TV 배너를 드래그/확대하여 시안을 확인할 수 있습니다.
+              사진을 업로드하면 이 영역에서 TV 배너를 드래그/확대하여 시안을
+              확인할 수 있습니다.
             </p>
           ) : null}
         </div>
@@ -410,13 +517,171 @@ export default function StorefrontEditor() {
           type="button"
           onClick={() => {
             setIsRequestModalOpen(true);
-            trackMetaCustomEvent('consultation_modal_opened');
+            trackMetaCustomEvent("consultation_modal_opened");
           }}
           className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue hover:bg-blue-50 sm:w-auto"
         >
           무료 상담 신청
         </button>
       </section>
+
+      {shouldShowPackageSection ? (
+        <section
+          aria-labelledby="woob-package-title"
+          className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-8"
+        >
+          <p className="text-sm font-semibold text-woob-blue">추천 패키지</p>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2
+                id="woob-package-title"
+                className="text-2xl font-bold tracking-tight text-slate-900"
+              >
+                우브 패키지별 구성
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                업로드한 매장 사진의 시뮬레이션 결과를 기준으로, 매장 규모와
+                노출 목적에 맞는 구성을 상담해 드립니다.
+              </p>
+            </div>
+            <a
+              href={WOOB_MALL_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() =>
+                trackMetaCustomEvent("woobmall_package_section_click")
+              }
+              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-700"
+            >
+              우브몰 바로가기
+            </a>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {WOOB_PACKAGES.map((woobPackage) => (
+              <article
+                key={woobPackage.name}
+                className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-50 p-4"
+              >
+                <p className="text-xs font-bold uppercase tracking-wide text-woob-blue">
+                  {woobPackage.badge}
+                </p>
+                <h3 className="mt-2 text-lg font-bold text-slate-900">
+                  {woobPackage.name}
+                </h3>
+                <p className="mt-2 text-xl font-extrabold text-slate-900">
+                  {woobPackage.price}
+                </p>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+                  {woobPackage.description}
+                </p>
+                <div className="mt-4 grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPackage(woobPackage);
+                      trackMetaCustomEvent("package_detail_opened", {
+                        packageName: woobPackage.name,
+                      });
+                    }}
+                    className="rounded-lg border border-woob-blue px-3 py-2 text-sm font-semibold text-woob-blue hover:bg-blue-50"
+                  >
+                    패키지 상세 보기
+                  </button>
+                  <a
+                    href={woobPackage.mallHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() =>
+                      trackMetaCustomEvent("package_woobmall_click", {
+                        packageName: woobPackage.name,
+                      })
+                    }
+                    className="rounded-lg bg-woob-blue px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700"
+                  >
+                    우브몰에서 보기
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {selectedPackage ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="package-modal-title"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-woob-blue">
+                  {selectedPackage.badge}
+                </p>
+                <h2
+                  id="package-modal-title"
+                  className="mt-1 text-xl font-bold text-slate-900"
+                >
+                  {selectedPackage.name}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPackage(null)}
+                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="패키지 상세 모달 닫기"
+              >
+                닫기
+              </button>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+              {selectedPackage.description}
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-700">
+              {selectedPackage.details.map((detail) => (
+                <li key={detail} className="flex gap-2">
+                  <span
+                    className="mt-1 h-1.5 w-1.5 rounded-full bg-woob-blue"
+                    aria-hidden="true"
+                  />
+                  <span>{detail}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 grid gap-2">
+              <a
+                href={selectedPackage.mallHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  trackMetaCustomEvent("package_modal_woobmall_click", {
+                    packageName: selectedPackage.name,
+                  })
+                }
+                className="rounded-lg bg-woob-blue px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                우브몰 바로가기
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPackage(null);
+                  setIsRequestModalOpen(true);
+                  trackMetaCustomEvent("package_consultation_click", {
+                    packageName: selectedPackage.name,
+                  });
+                }}
+                className="rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                무료 상담 신청
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isRequestModalOpen ? (
         <div
@@ -427,7 +692,10 @@ export default function StorefrontEditor() {
         >
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between gap-4">
-              <h2 id="request-modal-title" className="text-xl font-bold text-slate-900">
+              <h2
+                id="request-modal-title"
+                className="text-xl font-bold text-slate-900"
+              >
                 무료 상담 신청
               </h2>
               <button
@@ -440,8 +708,9 @@ export default function StorefrontEditor() {
               </button>
             </div>
             <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">
-              지금 만든 시뮬레이션 이미지를 저장한 뒤, 상담 신청 폼에 첨부해 주세요.
-              {'\n'}
+              지금 만든 시뮬레이션 이미지를 저장한 뒤, 상담 신청 폼에 첨부해
+              주세요.
+              {"\n"}
               담당자가 실제 설치 가능 위치와 무료 시안을 함께 확인해 드립니다.
             </p>
             <div className="mt-5 grid gap-2">
@@ -455,7 +724,7 @@ export default function StorefrontEditor() {
               </button>
               <a
                 href="/consult"
-                onClick={() => trackMetaCustomEvent('consultation_form_click')}
+                onClick={() => trackMetaCustomEvent("consultation_form_click")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
@@ -469,12 +738,12 @@ export default function StorefrontEditor() {
 
       <footer className="mt-8 space-y-2 rounded-2xl bg-white p-5 text-xs leading-relaxed text-slate-600 ring-1 ring-slate-200 sm:p-6">
         <p>
-          개인정보 고지: 본 페이지는 브라우저 내에서만 이미지를 처리하며, 업로드한 매장 사진은 서버에 저장되지
-          않습니다.
+          개인정보 고지: 본 페이지는 브라우저 내에서만 이미지를 처리하며,
+          업로드한 매장 사진은 서버에 저장되지 않습니다.
         </p>
         <p>
-          설치 안내: 시뮬레이션 결과는 이해를 돕기 위한 예시이며, 실제 설치 가능 여부/크기/위치는 현장 실측 및
-          구조 점검 후 최종 확정됩니다.
+          설치 안내: 시뮬레이션 결과는 이해를 돕기 위한 예시이며, 실제 설치 가능
+          여부/크기/위치는 현장 실측 및 구조 점검 후 최종 확정됩니다.
         </p>
       </footer>
     </main>
