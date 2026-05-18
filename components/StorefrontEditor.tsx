@@ -26,6 +26,53 @@ const MAX_SCALE = 1.8;
 
 const FALLBACK_MOCKUP_SRC = '/mockups/bakery-horizontal.png';
 
+type PackageKey = 'light' | 'standard' | 'premium';
+
+type WoobPackage = {
+  key: PackageKey;
+  title: string;
+  description: string;
+  composition: string;
+  price: string;
+  monthly: string;
+  detailHref: string;
+  isRecommended?: boolean;
+};
+
+const WOOB_PACKAGES: WoobPackage[] = [
+  {
+    key: 'light',
+    title: '라이트 패키지',
+    description: '홍보 영상 1종과 스마트 TV로 바로 시작하는 기본 구성',
+    composition: '홍보 영상 1종(80초 내외) + 스마트 TV + 거치대',
+    price: '968,000원',
+    monthly: '월 80,667원',
+    detailHref:
+      'https://woob.life/product/%EB%9D%BC%EC%9D%B4%ED%8A%B8-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-1%EC%A2%8580%EC%B4%88-%EB%82%B4%EC%99%B8-%EC%8A%A4%EB%A7%88%ED%8A%B8-tv%EA%B1%B0%EC%B9%98%EB%8C%80/27/category/1/display/4/?icid=MAIN.product_listmain_3',
+  },
+  {
+    key: 'standard',
+    title: '스탠다드 패키지',
+    description: '홍보 영상 2종으로 가게의 매력을 더 다양하게 보여주는 구성',
+    composition: '홍보 영상 2종(각 80초 내외) + 스마트 TV + 이동식 거치대',
+    price: '1,089,000원',
+    monthly: '월 90,750원',
+    detailHref:
+      'https://woob.life/product/%EC%8A%A4%ED%83%A0%EB%8B%A4%EB%93%9C-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-2%EC%A2%85%EA%B0%81-80%EC%B4%88-%EB%82%B4%EC%99%B8%EC%8A%A4%EB%A7%88%ED%8A%B8tv%EC%9D%B4%EB%8F%99%EC%8B%9D%EA%B1%B0%EC%B9%98%EB%8C%80/37/category/1/display/4/?icid=MAIN.product_listmain_3',
+    isRecommended: true,
+  },
+  {
+    key: 'premium',
+    title: '프리미엄 패키지',
+    description: '홍보 영상과 매장 전용 홈페이지까지 연결하는 고급 구성',
+    composition: '홍보 영상 2종 + 매장 전용 홈페이지 + 스마트 TV + 거치대',
+    price: '1,815,000원',
+    monthly: '월 151,250원',
+    detailHref:
+      'https://woob.life/product/%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-2%EC%A2%85%EA%B0%8180%EC%B4%88-%EB%82%B4%EC%99%B8%EB%A7%A4%EC%9E%A5%EC%A0%84%EC%9A%A9%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80%EC%8A%A4%EB%A7%88%ED%8A%B8tv%EA%B1%B0%EC%B9%98%EB%8C%80/28/category/1/display/4/?icid=MAIN.product_listmain_3',
+  },
+];
+
 const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
   { key: 'flower', label: '꽃집' },
   { key: 'bakery', label: '베이커리' },
@@ -104,6 +151,7 @@ export default function StorefrontEditor() {
   const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<WoobPackage | null>(null);
 
   const selectedMockupSrc = useMemo(
     () => `/mockups/${mockupIndustry}-${mockupOrientation}.png`,
@@ -111,6 +159,7 @@ export default function StorefrontEditor() {
   );
   const overlayImage = useLoadedImage(selectedMockupSrc, FALLBACK_MOCKUP_SRC);
   const backgroundImage = useLoadedImage(uploadSrc);
+  const shouldShowPackageSection = Boolean(uploadSrc);
 
   useEffect(() => {
     persistUtmParams();
@@ -461,6 +510,140 @@ export default function StorefrontEditor() {
                 className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
               >
                 무료 상담 신청 폼 작성하기
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {shouldShowPackageSection ? (
+        <section className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-woob-blue">추천 패키지</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                우브 패키지별 구성
+              </h2>
+              <p className="mt-2 text-sm text-slate-600 sm:text-base">
+                시뮬레이션 결과를 바탕으로 매장에 맞는 패키지를 비교해 보세요.
+              </p>
+            </div>
+            <a
+              href="/consult"
+              onClick={() => trackMetaCustomEvent('consultation_form_click', { source: 'package_section_cta' })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-woob-blue px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 sm:w-auto"
+            >
+              무료 상담 신청
+            </a>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            {WOOB_PACKAGES.map((pkg) => (
+              <article
+                key={pkg.key}
+                className={`relative flex h-full flex-col rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                  pkg.isRecommended ? 'border-woob-blue ring-2 ring-blue-100' : 'border-slate-200'
+                }`}
+              >
+                {pkg.isRecommended ? (
+                  <span className="absolute right-4 top-4 rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white">
+                    추천
+                  </span>
+                ) : null}
+                <h3 className="pr-14 text-xl font-bold text-slate-900">{pkg.title}</h3>
+                <p className="mt-2 min-h-12 text-sm leading-relaxed text-slate-600">{pkg.description}</p>
+                <div className="mt-5 rounded-xl bg-woob-sky p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-woob-blue">구성</p>
+                  <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-800">{pkg.composition}</p>
+                </div>
+                <div className="mt-5">
+                  <p className="text-sm text-slate-500">정가</p>
+                  <p className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{pkg.price}</p>
+                  <p className="mt-3 text-lg font-bold text-woob-blue">{pkg.monthly}</p>
+                  <p className="mt-1 text-xs text-slate-500">*12개월 할부 기준</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPackage(pkg);
+                    trackMetaCustomEvent('package_detail_opened', { package: pkg.key });
+                  }}
+                  className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue transition hover:bg-blue-50"
+                >
+                  패키지 상세 보기
+                </button>
+              </article>
+            ))}
+          </div>
+
+          <p className="mt-5 text-xs leading-relaxed text-slate-500">
+            ※ TV 색상과 사이즈 옵션, 설치 환경에 따라 실제 결제 금액은 달라질 수 있습니다.
+          </p>
+        </section>
+      ) : null}
+
+      {selectedPackage ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="package-modal-title"
+        >
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-woob-blue">패키지 상세</p>
+                <h2 id="package-modal-title" className="mt-1 text-2xl font-bold text-slate-900">
+                  {selectedPackage.title}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPackage(null)}
+                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="패키지 상세 팝업 닫기"
+              >
+                닫기
+              </button>
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-slate-600">{selectedPackage.description}</p>
+            <div className="mt-5 rounded-xl bg-woob-sky p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-woob-blue">구성</p>
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-800">
+                {selectedPackage.composition}
+              </p>
+            </div>
+            <div className="mt-5 rounded-xl border border-slate-200 p-4">
+              <p className="text-sm text-slate-500">정가</p>
+              <p className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{selectedPackage.price}</p>
+              <p className="mt-3 text-lg font-bold text-woob-blue">{selectedPackage.monthly}</p>
+              <p className="mt-1 text-xs text-slate-500">*12개월 할부 기준</p>
+            </div>
+            <div className="mt-6 grid gap-2 sm:grid-cols-2">
+              <a
+                href="/consult"
+                onClick={() =>
+                  trackMetaCustomEvent('consultation_form_click', {
+                    source: 'package_detail_modal',
+                    package: selectedPackage.key,
+                  })
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg bg-woob-blue px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-800"
+              >
+                이 패키지로 상담 신청
+              </a>
+              <a
+                href={selectedPackage.detailHref}
+                onClick={() => trackMetaCustomEvent('package_mall_detail_click', { package: selectedPackage.key })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-semibold text-slate-800 hover:bg-slate-50"
+              >
+                우브몰에서 자세히 보기
               </a>
             </div>
           </div>
