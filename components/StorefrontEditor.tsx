@@ -89,13 +89,11 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     description: '홍보 영상과 홈페이지를 함께 준비하는 확장 패키지입니다.',
     composition: ['홍보 영상 2종(각 80초 내외)', '매장 전용 홈페이지', '32인치 스마트TV + 전용거치대'],
     detailBullets: [
-      '홍보 영상 2종',
-      '매장 전용 홈페이지',
-      '32인치 스마트TV + 이동식 거치대',
-      '예약/안내/브랜딩 동선까지 함께 필요한 매장에 추천',
+      '홈페이지까지 한 번에 논스톱 패키지',
+      '고객에게 예약유도, 상담유도 등 고객 행동 연동까지 필요한 매장에 추천',
     ],
     listPrice: '1,815,000원',
-    monthlyPrice: '월 15만원대부터',
+    monthlyPrice: '월 151,250원부터',
     cardMonthlyPrice: '월 151,250원',
     note: '*12개월 할부 기준',
     mallUrl:
@@ -592,25 +590,7 @@ export default function StorefrontEditor() {
             </div>
 
             <article className="mt-5 rounded-3xl border-2 border-blue-200 bg-blue-50/70 p-5 sm:p-6">
-              {selectedPackage.id === 'premium' ? (
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-xl font-extrabold text-slate-950">{selectedPackage.title}</h3>
-                      {selectedPackage.badge ? (
-                        <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
-                          {selectedPackage.badge}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="mt-1 text-sm font-semibold text-woob-blue">{selectedPackage.subtitle}</p>
-                  </div>
-                </div>
-              ) : null}
-
-              <ul
-                className={`${selectedPackage.id === 'premium' ? 'mt-5 ' : ''}space-y-3 rounded-2xl bg-white p-4 text-sm leading-relaxed text-slate-700 ring-1 ring-blue-100`}
-              >
+              <ul className="space-y-3 rounded-2xl bg-white p-4 text-sm leading-relaxed text-slate-700 ring-1 ring-blue-100">
                 {selectedPackage.detailBullets.map((item) => (
                   <li key={item} className="flex gap-3">
                     <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-woob-blue text-xs font-bold text-white">
@@ -635,9 +615,7 @@ export default function StorefrontEditor() {
             </article>
 
             <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
-              {selectedPackage.id === 'light' || selectedPackage.id === 'standard'
-                ? '정확한 금액은 TV 색상과 사이즈 옵션, 설치 옵션에 따라 달라질 수 있으며 옵션 선택별 상세한 가격은 우브몰에서 확인 가능합니다.'
-                : '정확한 금액은 TV 색상과 사이즈 옵션, 설치 환경에 따라 달라질 수 있습니다.'}
+              정확한 금액은 TV 색상과 사이즈 옵션, 설치 옵션에 따라 달라질 수 있으며 옵션 선택별 상세한 가격은 우브몰에서 확인 가능합니다.
             </p>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
