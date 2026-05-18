@@ -493,7 +493,7 @@ export default function StorefrontEditor() {
             setIsRequestModalOpen(true);
             trackMetaCustomEvent('consultation_modal_opened');
           }}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-woob-blue px-4 py-3 text-sm font-semibold text-woob-blue hover:bg-blue-50 sm:w-auto"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-transparent bg-woob-blue px-5 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(31,63,191,0.22)] transition hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-woob-blue sm:w-auto"
         >
           무료 상담 신청
         </button>
