@@ -52,7 +52,7 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     subtitle: '소형 매장 시작용',
     summary: '처음 테스트하는 매장에 추천',
     description: '기본 구성으로 빠르게 시작할 수 있는 패키지입니다.',
-    composition: ['홍보 영상 1종', '32인치 스마트TV', '이동식 거치대'],
+    composition: ['홍보 영상 1종(80초 내외)', '32인치 스마트TV + 전용거치대'],
     detailBullets: [
       '홍보 영상 1종',
       '32인치 스마트TV + 이동식 거치대',
@@ -72,7 +72,7 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     badge: '추천',
     summary: '시즌/이벤트 홍보까지 운영하기 좋음',
     description: '가장 균형 잡힌 추천 구성입니다.',
-    composition: ['홍보 영상 2종', '32인치 스마트TV', '이동식 거치대'],
+    composition: ['홍보 영상 2종(각 80초 내외)', '32인치 스마트TV + 전용거치대'],
     detailBullets: [
       '홍보 영상 2종',
       '32인치 스마트TV + 이동식 거치대',
@@ -90,8 +90,8 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     title: '프리미엄 패키지',
     subtitle: '브랜드페이지까지 필요한 매장',
     summary: '예약/안내/브랜딩 동선까지 함께 필요한 매장에 추천',
-    description: '홍보 영상과 브랜드페이지를 함께 준비하는 확장 패키지입니다.',
-    composition: ['홍보 영상 2종', '매장 전용 홈페이지', '32인치 스마트TV + 이동식 거치대'],
+    description: '홍보 영상과 홈페이지를 함께 준비하는 확장 패키지입니다.',
+    composition: ['홍보 영상 2종(각 80초 내외)', '매장 전용 홈페이지', '32인치 스마트TV + 전용거치대'],
     detailBullets: [
       '홍보 영상 2종',
       '매장 전용 홈페이지',
@@ -525,7 +525,9 @@ export default function StorefrontEditor() {
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-1 text-sm font-semibold text-woob-blue">{packageOption.subtitle}</p>
+                <p className="mt-1 text-sm font-semibold text-woob-blue">
+                  {packageOption.id === 'premium' ? '홈페이지까지 필요한 매장' : packageOption.subtitle}
+                </p>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">{packageOption.description}</p>
                 <div className="mt-4 rounded-xl bg-slate-50 p-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-500">구성</p>
