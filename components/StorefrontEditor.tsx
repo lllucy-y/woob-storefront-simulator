@@ -570,9 +570,16 @@ export default function StorefrontEditor() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-bold text-woob-blue">패키지 상세</p>
-                <h2 id="package-modal-title" className="mt-1 text-2xl font-extrabold text-slate-900">
-                  {selectedPackage.title}
-                </h2>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <h2 id="package-modal-title" className="text-2xl font-extrabold text-slate-900">
+                    {selectedPackage.title}
+                  </h2>
+                  {selectedPackage.id === 'standard' && selectedPackage.badge ? (
+                    <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
+                      {selectedPackage.badge}
+                    </span>
+                  ) : null}
+                </div>
               </div>
               <button
                 type="button"
@@ -585,28 +592,24 @@ export default function StorefrontEditor() {
             </div>
 
             <article className="mt-5 rounded-3xl border-2 border-blue-200 bg-blue-50/70 p-5 sm:p-6">
-              {selectedPackage.id !== 'light' || selectedPackage.badge ? (
+              {selectedPackage.id === 'premium' ? (
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  {selectedPackage.id !== 'light' ? (
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-xl font-extrabold text-slate-950">{selectedPackage.title}</h3>
-                        {selectedPackage.badge ? (
-                          <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
-                            {selectedPackage.badge}
-                          </span>
-                        ) : null}
-                      </div>
-                      {selectedPackage.id !== 'standard' ? (
-                        <p className="mt-1 text-sm font-semibold text-woob-blue">{selectedPackage.subtitle}</p>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-xl font-extrabold text-slate-950">{selectedPackage.title}</h3>
+                      {selectedPackage.badge ? (
+                        <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
+                          {selectedPackage.badge}
+                        </span>
                       ) : null}
                     </div>
-                  ) : null}
+                    <p className="mt-1 text-sm font-semibold text-woob-blue">{selectedPackage.subtitle}</p>
+                  </div>
                 </div>
               ) : null}
 
               <ul
-                className={`${selectedPackage.id === 'light' ? '' : 'mt-5 '}space-y-3 rounded-2xl bg-white p-4 text-sm leading-relaxed text-slate-700 ring-1 ring-blue-100`}
+                className={`${selectedPackage.id === 'premium' ? 'mt-5 ' : ''}space-y-3 rounded-2xl bg-white p-4 text-sm leading-relaxed text-slate-700 ring-1 ring-blue-100`}
               >
                 {selectedPackage.detailBullets.map((item) => (
                   <li key={item} className="flex gap-3">
