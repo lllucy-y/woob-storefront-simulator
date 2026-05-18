@@ -39,6 +39,7 @@ type PackageOption = {
   detailBullets: string[];
   listPrice: string;
   monthlyPrice: string;
+  cardMonthlyPrice: string;
   note: string;
   mallUrl: string;
 };
@@ -61,6 +62,7 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     ],
     listPrice: '968,000원',
     monthlyPrice: '월 8만원대부터',
+    cardMonthlyPrice: '월 80,667원',
     note: '*12개월 할부 기준',
     mallUrl:
       'https://woob.life/product/%EB%9D%BC%EC%9D%B4%ED%8A%B8-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-1%EC%A2%8580%EC%B4%88-%EB%82%B4%EC%99%B8-%EC%8A%A4%EB%A7%88%ED%8A%B8-tv%EA%B1%B0%EC%B9%98%EB%8C%80/27/category/1/display/4/?icid=MAIN.product_listmain_3',
@@ -81,6 +83,7 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     ],
     listPrice: '1,089,000원',
     monthlyPrice: '월 9만원대부터',
+    cardMonthlyPrice: '월 90,750원',
     note: '*12개월 할부 기준',
     mallUrl:
       'https://woob.life/product/%EC%8A%A4%ED%83%A0%EB%8B%A4%EB%93%9C-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-2%EC%A2%85%EA%B0%81-80%EC%B4%88-%EB%82%B4%EC%99%B8%EC%8A%A4%EB%A7%88%ED%8A%B8tv%EC%9D%B4%EB%8F%99%EC%8B%9D%EA%B1%B0%EC%B9%98%EB%8C%80/37/category/1/display/4/?icid=MAIN.product_listmain_3',
@@ -100,6 +103,7 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     ],
     listPrice: '1,815,000원',
     monthlyPrice: '월 15만원대부터',
+    cardMonthlyPrice: '월 151,250원',
     note: '*12개월 할부 기준',
     mallUrl:
       'https://woob.life/product/%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84-%ED%8C%A8%ED%82%A4%EC%A7%80-%ED%99%8D%EB%B3%B4-%EC%98%81%EC%83%81-2%EC%A2%85%EA%B0%8180%EC%B4%88-%EB%82%B4%EC%99%B8%EB%A7%A4%EC%9E%A5%EC%A0%84%EC%9A%A9%ED%99%88%ED%8E%98%EC%9D%B4%EC%A7%80%EC%8A%A4%EB%A7%88%ED%8A%B8tv%EA%B1%B0%EC%B9%98%EB%8C%80/28/category/1/display/4/?icid=MAIN.product_listmain_3',
@@ -506,7 +510,7 @@ export default function StorefrontEditor() {
             <div>
               <h2 className="mt-1 text-2xl font-bold text-slate-900">우브 패키지 비교 요약</h2>
               <p className="mt-2 text-sm text-slate-600">
-                매장 상황에 맞춰 시작하기 좋은 구성부터 브랜드페이지 포함 구성까지 비교해 보세요.
+                매장 상황에 맞춰 비교해보세요.
               </p>
             </div>
           </div>
@@ -540,12 +544,11 @@ export default function StorefrontEditor() {
                     ))}
                   </ul>
                 </div>
-                <div className="mt-4 flex items-end justify-between gap-3">
-                  <div>
-                    <p className="text-xs text-slate-500">정가</p>
-                    <p className="text-xl font-extrabold text-slate-900">{packageOption.listPrice}</p>
-                  </div>
-                  <p className="text-sm font-bold text-woob-blue">{packageOption.monthlyPrice}</p>
+                <div className="mt-4">
+                  <p className="text-xs font-medium text-slate-400">정가</p>
+                  <p className="mt-0.5 text-sm font-semibold text-slate-600">{packageOption.listPrice}</p>
+                  <p className="mt-1 text-2xl font-extrabold text-woob-blue">{packageOption.cardMonthlyPrice}</p>
+                  <p className="mt-1 text-xs text-slate-500">{packageOption.note}</p>
                 </div>
                 <button
                   type="button"
