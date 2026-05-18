@@ -26,6 +26,44 @@ const MAX_SCALE = 1.8;
 
 const FALLBACK_MOCKUP_SRC = '/mockups/bakery-horizontal.png';
 
+type PackageId = 'light' | 'standard' | 'premium';
+
+type PackageSummary = {
+  id: PackageId;
+  name: string;
+  subtitle: string;
+  description: string;
+  regularPrice: string;
+  monthlyPrice: string;
+};
+
+const PACKAGE_SUMMARIES: PackageSummary[] = [
+  {
+    id: 'light',
+    name: '라이트 패키지',
+    subtitle: '디지털 배너가 처음인 매장',
+    description: '매장 사진에 어울리는 기본 우브 배너를 빠르게 확인하는 입문 패키지입니다.',
+    regularPrice: '정가 968,000원',
+    monthlyPrice: '월 8만원대부터',
+  },
+  {
+    id: 'standard',
+    name: '스탠다드 패키지',
+    subtitle: '홍보 콘텐츠까지 필요한 매장',
+    description: '우브 배너와 홍보 콘텐츠를 함께 준비하는 기본 구성 패키지입니다.',
+    regularPrice: '정가 1,089,000원',
+    monthlyPrice: '월 9만원대부터',
+  },
+  {
+    id: 'premium',
+    name: '프리미엄 패키지',
+    subtitle: '홈페이지까지 필요한 매장',
+    description: '우브 배너와 홈페이지가 함께 구성된 확장 패키지입니다.',
+    regularPrice: '정가 1,815,000원',
+    monthlyPrice: '월 15만원대부터',
+  },
+];
+
 const INDUSTRY_OPTIONS: Array<{ key: MockupIndustry; label: string }> = [
   { key: 'flower', label: '꽃집' },
   { key: 'bakery', label: '베이커리' },
@@ -104,6 +142,7 @@ export default function StorefrontEditor() {
   const [mockupOrientation, setMockupOrientation] = useState<MockupOrientation>('horizontal');
 
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<PackageSummary | null>(null);
 
   const selectedMockupSrc = useMemo(
     () => `/mockups/${mockupIndustry}-${mockupOrientation}.png`,
@@ -406,6 +445,33 @@ export default function StorefrontEditor() {
           목업은 손가락으로 끌어서 원하는 위치에 배치할 수 있어요.
         </p>
 
+        {backgroundImage ? (
+          <section className="mt-8 rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200" aria-labelledby="package-summary-title">
+            <h2 id="package-summary-title" className="text-2xl font-bold tracking-tight text-slate-950">
+              우브 패키지별 요약
+            </h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
+              {PACKAGE_SUMMARIES.map((packageSummary) => (
+                <button
+                  key={packageSummary.id}
+                  type="button"
+                  onClick={() => setSelectedPackage(packageSummary)}
+                  className="rounded-2xl bg-white p-5 text-left shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <span className="text-sm font-semibold text-woob-blue">{packageSummary.name}</span>
+                  <strong className="mt-3 block text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+                    {packageSummary.monthlyPrice}
+                  </strong>
+                  <span className="mt-1 block text-xs font-medium text-slate-500">*12개월 할부 기준</span>
+                  <span className="mt-3 block text-sm font-medium text-slate-400">{packageSummary.regularPrice}</span>
+                  <span className="mt-4 block text-base font-semibold text-slate-800">{packageSummary.subtitle}</span>
+                  <span className="mt-2 block text-sm leading-relaxed text-slate-600">{packageSummary.description}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <button
           type="button"
           onClick={() => {
@@ -463,6 +529,40 @@ export default function StorefrontEditor() {
                 무료 상담 신청 폼 작성하기
               </a>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {selectedPackage ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="package-detail-title"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-woob-blue">{selectedPackage.name}</p>
+                <h2 id="package-detail-title" className="mt-2 text-xl font-bold text-slate-900">
+                  {selectedPackage.subtitle}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPackage(null)}
+                className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="패키지 상세 닫기"
+              >
+                닫기
+              </button>
+            </div>
+            <div className="mt-5 rounded-2xl bg-slate-50 p-5">
+              <p className="text-4xl font-extrabold tracking-tight text-slate-950">{selectedPackage.monthlyPrice}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500">*12개월 할부 기준</p>
+              <p className="mt-3 text-sm font-medium text-slate-400">{selectedPackage.regularPrice}</p>
+            </div>
+            <p className="mt-5 text-sm leading-relaxed text-slate-600">{selectedPackage.description}</p>
           </div>
         </div>
       ) : null}
