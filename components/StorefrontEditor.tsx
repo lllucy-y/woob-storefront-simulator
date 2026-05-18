@@ -71,13 +71,11 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     description: '가장 균형 잡힌 추천 구성입니다.',
     composition: ['홍보 영상 2종(각 80초 내외)', '32인치 스마트TV + 전용거치대'],
     detailBullets: [
-      '홍보 영상 2종',
-      '32인치 스마트TV + 이동식 거치대',
-      '시즌/이벤트 홍보까지 운영하기 좋음',
-      '가장 균형 잡힌 추천 구성',
+      '가로형 영상, 세로형 영상 2종을 만들어서 번갈아가며 사용 가능',
+      '상시 홍보영상+시간대별 영상 또는 이벤트별 영상 형태로도 운영 가능',
     ],
     listPrice: '1,089,000원',
-    monthlyPrice: '월 9만원대부터',
+    monthlyPrice: '월 90,750원부터',
     cardMonthlyPrice: '월 90,750원',
     note: '*12개월 할부 기준',
     mallUrl:
@@ -591,14 +589,18 @@ export default function StorefrontEditor() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   {selectedPackage.id !== 'light' ? (
                     <div>
-                      <h3 className="text-xl font-extrabold text-slate-950">{selectedPackage.title}</h3>
-                      <p className="mt-1 text-sm font-semibold text-woob-blue">{selectedPackage.subtitle}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-xl font-extrabold text-slate-950">{selectedPackage.title}</h3>
+                        {selectedPackage.badge ? (
+                          <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
+                            {selectedPackage.badge}
+                          </span>
+                        ) : null}
+                      </div>
+                      {selectedPackage.id !== 'standard' ? (
+                        <p className="mt-1 text-sm font-semibold text-woob-blue">{selectedPackage.subtitle}</p>
+                      ) : null}
                     </div>
-                  ) : null}
-                  {selectedPackage.badge ? (
-                    <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
-                      {selectedPackage.badge}
-                    </span>
                   ) : null}
                 </div>
               ) : null}
@@ -630,7 +632,7 @@ export default function StorefrontEditor() {
             </article>
 
             <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
-              {selectedPackage.id === 'light'
+              {selectedPackage.id === 'light' || selectedPackage.id === 'standard'
                 ? '정확한 금액은 TV 색상과 사이즈 옵션, 설치 옵션에 따라 달라질 수 있으며 옵션 선택별 상세한 가격은 우브몰에서 확인 가능합니다.'
                 : '정확한 금액은 TV 색상과 사이즈 옵션, 설치 환경에 따라 달라질 수 있습니다.'}
             </p>
