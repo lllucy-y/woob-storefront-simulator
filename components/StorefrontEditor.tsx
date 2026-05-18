@@ -54,14 +54,9 @@ const PACKAGE_OPTIONS: PackageOption[] = [
     summary: '처음 테스트하는 매장에 추천',
     description: '기본 구성으로 빠르게 시작할 수 있는 패키지입니다.',
     composition: ['홍보 영상 1종(80초 내외)', '32인치 스마트TV + 전용거치대'],
-    detailBullets: [
-      '홍보 영상 1종',
-      '32인치 스마트TV + 이동식 거치대',
-      '처음 테스트하는 매장에 추천',
-      '기본 구성으로 빠르게 시작',
-    ],
+    detailBullets: ['디지털배너를 처음 도입하는 매장에 추천', '기본 구성으로 빠르게 시작'],
     listPrice: '968,000원',
-    monthlyPrice: '월 8만원대부터',
+    monthlyPrice: '월 80,667원부터',
     cardMonthlyPrice: '월 80,667원',
     note: '*12개월 할부 기준',
     mallUrl:
@@ -592,19 +587,25 @@ export default function StorefrontEditor() {
             </div>
 
             <article className="mt-5 rounded-3xl border-2 border-blue-200 bg-blue-50/70 p-5 sm:p-6">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-xl font-extrabold text-slate-950">{selectedPackage.title}</h3>
-                  <p className="mt-1 text-sm font-semibold text-woob-blue">{selectedPackage.subtitle}</p>
+              {selectedPackage.id !== 'light' || selectedPackage.badge ? (
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  {selectedPackage.id !== 'light' ? (
+                    <div>
+                      <h3 className="text-xl font-extrabold text-slate-950">{selectedPackage.title}</h3>
+                      <p className="mt-1 text-sm font-semibold text-woob-blue">{selectedPackage.subtitle}</p>
+                    </div>
+                  ) : null}
+                  {selectedPackage.badge ? (
+                    <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
+                      {selectedPackage.badge}
+                    </span>
+                  ) : null}
                 </div>
-                {selectedPackage.badge ? (
-                  <span className="rounded-full bg-woob-blue px-3 py-1 text-xs font-bold text-white shadow-sm">
-                    {selectedPackage.badge}
-                  </span>
-                ) : null}
-              </div>
+              ) : null}
 
-              <ul className="mt-5 space-y-3 rounded-2xl bg-white p-4 text-sm leading-relaxed text-slate-700 ring-1 ring-blue-100">
+              <ul
+                className={`${selectedPackage.id === 'light' ? '' : 'mt-5 '}space-y-3 rounded-2xl bg-white p-4 text-sm leading-relaxed text-slate-700 ring-1 ring-blue-100`}
+              >
                 {selectedPackage.detailBullets.map((item) => (
                   <li key={item} className="flex gap-3">
                     <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-woob-blue text-xs font-bold text-white">
@@ -629,7 +630,9 @@ export default function StorefrontEditor() {
             </article>
 
             <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
-              정확한 금액은 TV 색상과 사이즈 옵션, 설치 환경에 따라 달라질 수 있습니다.
+              {selectedPackage.id === 'light'
+                ? '정확한 금액은 TV 색상과 사이즈 옵션, 설치 옵션에 따라 달라질 수 있으며 옵션 선택별 상세한 가격은 우브몰에서 확인 가능합니다.'
+                : '정확한 금액은 TV 색상과 사이즈 옵션, 설치 환경에 따라 달라질 수 있습니다.'}
             </p>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
